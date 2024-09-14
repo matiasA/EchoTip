@@ -13,9 +13,9 @@ React VoiceTooltip es un componente de React que crea tooltips interactivos con 
 
 ## 🚀 Instalación
 
-
+```
 npm install react-voice-tooltip openai
-
+```
 
 
 ## 🛠️ Configuración
@@ -23,9 +23,9 @@ npm install react-voice-tooltip openai
 1. Asegúrate de tener una clave de API de OpenAI.
 2. Crea un archivo `.env` en la raíz de tu proyecto y añade tu clave de API:
 
-
+```
 REACT_APP_OPENAI_API_KEY=tu_clave_api_aqui
-
+```
 
 
 ## 📖 Uso
@@ -44,7 +44,7 @@ function App() {
   );
 }
 export default App;
-
+```
 
 
 ## 📚 Props
@@ -60,9 +60,9 @@ export default App;
 ## 🧪 Pruebas
 
 Para ejecutar las pruebas:
-
+```
 npm test
-
+```
 
 ## 🤝 Contribuir
 
