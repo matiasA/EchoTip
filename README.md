@@ -31,17 +31,17 @@ REACT_APP_OPENAI_API_KEY=tu_clave_api_aqui
 ## 📖 Uso
 
 
-jsx
+```jsx
 import React from 'react';
 import VoiceTooltip from 'react-voice-tooltip';
 function App() {
-return (
-<div>
-<VoiceTooltip text="Este es un botón importante" voiceText="Este botón realiza una acción crítica">
-<button>Botón Importante</button>
-</VoiceTooltip>
-</div>
-);
+  return (
+    <div>
+      <VoiceTooltip text="Este es un botón importante" voiceText="Este botón realiza una acción crítica">
+        <button>Botón Importante</button>
+      </VoiceTooltip>
+    </div>
+  );
 }
 export default App;
 
