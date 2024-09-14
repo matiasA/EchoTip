@@ -1,13 +1,40 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
+import { generateVoiceText } from '../utils/llmService';
 
 const VoiceTooltip = ({ text, voiceText, position = 'top', theme, children }) => {
-  // Implementación del tooltip con texto a voz
+  const [visible, setVisible] = useState(false);
+  const [generatedVoiceText, setGeneratedVoiceText] = useState('');
+
+  useEffect(() => {
+    async function fetchVoiceText() {
+      if (!voiceText) {
+        const generated = await generateVoiceText(text);
+        setGeneratedVoiceText(generated);
+      }
+    }
+    fetchVoiceText();
+  }, [text, voiceText]);
+
+  useEffect(() => {
+    if (visible) {
+      const utterance = new SpeechSynthesisUtterance(voiceText || generatedVoiceText || text);
+      speechSynthesis.speak(utterance);
+    }
+  }, [visible, voiceText, generatedVoiceText, text]);
+
+  const showTooltip = () => setVisible(true);
+  const hideTooltip = () => setVisible(false);
+
   return (
-    <div className={`voice-tooltip ${position}`} style={theme}>
+    <div
+      className={`voice-tooltip ${position}`}
+      style={theme}
+      onMouseEnter={showTooltip}
+      onMouseLeave={hideTooltip}
+    >
       {children}
-      <span className="tooltip-text">{text}</span>
-      {/* Lógica de texto a voz */}
+      <span className="tooltip-text" style={{ visibility: visible ? 'visible' : 'hidden' }}>{text}</span>
     </div>
   );
 };

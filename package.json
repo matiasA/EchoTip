@@ -48,6 +48,10 @@
   },
   "homepage": "https://github.com/tu-usuario/react-echo-tip#readme",
   "dependencies": {
+    "openai": "^4.61.0",
     "prop-types": "^15.8.1"
+  },
+  "jest": {
+    "testEnvironment": "jsdom"
   }
 }
