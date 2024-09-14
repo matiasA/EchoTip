@@ -1,70 +1,73 @@
-# React EchoTip
+# 🎙️ React VoiceTooltip
 
-React EchoTip es una librería de React que permite crear tooltips interactivos con capacidad de texto a voz. Mejora la accesibilidad y la experiencia del usuario al proporcionar información tanto visual como auditiva.
+React VoiceTooltip es un componente de React que crea tooltips interactivos con capacidad de texto a voz, mejorando la accesibilidad y la experiencia del usuario.
 
 ## 🌟 Características
 
-- 🎨 Tooltips estándar con diseño personalizable
-- 🔊 Funcionalidad de texto a voz integrada
-- 🔌 Fácil integración con proyectos React existentes
-- ⚙️ Opciones de personalización para voz y apariencia
-- ♿ Totalmente accesible y compatible con lectores de pantalla
+- Tooltips personalizables con diseño adaptable
+- Generación automática de audio al mostrar el tooltip
+- Integración con OpenAI para la síntesis de voz de alta calidad
+- Fácil integración con proyectos React
+- Opciones de personalización para voz y apariencia
+- Totalmente accesible y compatible con lectores de pantalla
 
 ## 🚀 Instalación
 
-Para instalar React EchoTip en tu proyecto, ejecuta uno de los siguientes comandos:
 
-```bash
-npm install react-echotip
+npm install react-voice-tooltip openai
 
-## 📘 Uso básico
 
-Aquí tienes un ejemplo simple de cómo usar React EchoTip en tu aplicación:
 
-```jsx
+## 🛠️ Configuración
+
+1. Asegúrate de tener una clave de API de OpenAI.
+2. Crea un archivo `.env` en la raíz de tu proyecto y añade tu clave de API:
+
+
+REACT_APP_OPENAI_API_KEY=tu_clave_api_aqui
+
+
+
+## 📖 Uso
+
+
+jsx
 import React from 'react';
-import { EchoTip } from 'react-echotip';
+import VoiceTooltip from 'react-voice-tooltip';
 function App() {
-  return (
-    <div>
-      <EchoTip
-        text="Este es un tooltip con voz"
-        voiceText="Este es el texto que se leerá en voz alta"
-      >
-        <button>Hover sobre mí</button>
-      </EchoTip>
-    </div>
-  );
+return (
+<div>
+<VoiceTooltip text="Este es un botón importante" voiceText="Este botón realiza una acción crítica">
+<button>Botón Importante</button>
+</VoiceTooltip>
+</div>
+);
 }
 export default App;
 
-## 📚 API
 
-### `<EchoTip>`
 
-#### Propiedades principales:
+## 📚 Props
 
-| Propiedad | Tipo | Requerido | Descripción |
-|-----------|------|-----------|-------------|
-| `text` | string | Sí | El texto que se mostrará en el tooltip. |
-| `voiceText` | string | No | El texto que se leerá en voz alta. Si no se proporciona, se usará el valor de `text`. |
-| `position` | string | No | La posición del tooltip ('top', 'bottom', 'left', 'right'). Por defecto es 'top'. |
-| `theme` | object | No | Un objeto para personalizar el estilo del tooltip. |
+| Prop | Tipo | Descripción |
+|------|------|-------------|
+| `text` | string | Texto a mostrar en el tooltip (requerido) |
+| `voiceText` | string | Texto a convertir en voz (opcional, si es diferente de `text`) |
+| `position` | string | Posición del tooltip ('top', 'bottom', 'left', 'right') |
+| `children` | node | Elemento al que se aplicará el tooltip (requerido) |
+| `onError` | function | Función a llamar en caso de error |
 
-## 🎨 Personalización
+## 🧪 Pruebas
 
-Puedes personalizar la apariencia y el comportamiento de los tooltips. Consulta nuestra [documentación detallada](link-a-documentacion) para más información sobre las opciones de personalización.
+Para ejecutar las pruebas:
 
-## 🤝 Contribución
+npm test
 
-¡Las contribuciones son bienvenidas! Por favor, lee nuestra [guía de contribución](link-a-guia-contribucion) para más detalles sobre cómo puedes contribuir al proyecto.
+
+## 🤝 Contribuir
+
+Las contribuciones son bienvenidas. Por favor, abre un issue o un pull request para sugerir cambios o mejoras.
 
 ## 📄 Licencia
 
-Este proyecto está licenciado bajo la Licencia MIT. Consulta el archivo [LICENSE](link-a-licencia) para más detalles.
-
-## 💬 Soporte
-
-Si tienes alguna pregunta o problema, por favor abre un [issue](link-a-issues) en nuestro repositorio de GitHub.
-
----
+MIT © Cristian Matias Aracena
