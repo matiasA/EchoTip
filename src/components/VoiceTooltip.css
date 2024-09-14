@@ -1,46 +1,66 @@
 .voice-tooltip {
   position: relative;
   display: inline-block;
-  cursor: pointer;
 }
 
 .voice-tooltip .tooltip-text {
-  width: 120px;
-  background-color: #555;
+  visibility: hidden;
+  width: 200px;
+  background-color: #333;
   color: #fff;
   text-align: center;
   border-radius: 6px;
-  padding: 5px 0;
-  
-  /* Posición del tooltip */
+  padding: 10px;
   position: absolute;
   z-index: 1;
-  bottom: 125%; /* Por defecto 'top' */
+  bottom: 125%;
   left: 50%;
-  margin-left: -60px;
-  
+  margin-left: -100px;
   opacity: 0;
   transition: opacity 0.3s, visibility 0.3s;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  font-size: 14px;
 }
 
 .voice-tooltip:hover .tooltip-text {
+  visibility: visible;
   opacity: 1;
 }
 
+.voice-tooltip .tooltip-text::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #333 transparent transparent transparent;
+}
+
 .voice-tooltip .tooltip-text button {
-  background: none;
+  background-color: #4CAF50;
   border: none;
-  color: #fff;
+  color: white;
+  padding: 5px 10px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 12px;
+  margin-top: 10px;
   cursor: pointer;
-  font-size: 0.9em;
-  margin-top: 5px;
-  padding: 2px 5px;
   border-radius: 3px;
   transition: background-color 0.3s;
 }
 
 .voice-tooltip .tooltip-text button:hover {
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: #45a049;
+}
+
+.voice-tooltip .tooltip-text button:disabled {
+  background-color: #cccccc;
+  color: #666666;
+  cursor: not-allowed;
 }
 
 .voice-tooltip .tooltip-text button.generating {

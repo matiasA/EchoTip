@@ -1,29 +1,27 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { generateVoiceAudio, translateToSpanish } from '../utils/llmService';
-import './VoiceTooltip.css';  // Importa los estilos CSS para el componente
+import './VoiceTooltip.css';
 
-// Componente VoiceTooltip que crea un tooltip con capacidad de texto a voz
 const VoiceTooltip = ({ text, voiceText, children, position = 'top', theme, onError }) => {
-  // Estados para manejar la visibilidad y el estado del audio
-  const [visible, setVisible] = useState(false);  // Controla la visibilidad del tooltip
-  const [audioUrl, setAudioUrl] = useState(null);  // Almacena la URL del audio generado
-  const [isAudioReady, setIsAudioReady] = useState(false);  // Indica si el audio está listo para reproducirse
-  const [isGenerating, setIsGenerating] = useState(false);  // Indica si se está generando el audio
-  const [spanishText, setSpanishText] = useState('');  // Almacena el texto traducido al español
-  const [error, setError] = useState(null);  // Almacena cualquier error que ocurra
-  const audioRef = useRef(null);  // Referencia al elemento de audio
+  const [visible, setVisible] = useState(false);
+  const [audioUrl, setAudioUrl] = useState(null);
+  const [isAudioReady, setIsAudioReady] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  // Eliminamos la variable spanishText ya que no se está utilizando
+  const [error, setError] = useState(null);
+  const audioRef = useRef(null);
 
-  // Función para preparar el audio (traducir y generar)
   const prepareAudio = useCallback(async () => {
-    if (audioUrl) return;  // Si ya hay un audio generado, no hace nada
+    if (audioUrl) return;
     setIsGenerating(true);
+    setError(null);
     try {
-      const textToTranslate = voiceText || text;  // Usa voiceText si está disponible, si no, usa text
+      const textToTranslate = voiceText || text;
       console.log("Texto original:", textToTranslate);
-      const translatedText = await translateToSpanish(textToTranslate);  // Traduce el texto al español
-      setSpanishText(translatedText);
-      const url = await generateVoiceAudio(translatedText);  // Genera el audio del texto traducido
+      const translatedText = await translateToSpanish(textToTranslate);
+      // Usamos directamente translatedText en lugar de guardarlo en un estado
+      const url = await generateVoiceAudio(translatedText);
       if (url) {
         setAudioUrl(url);
         setIsAudioReady(true);
@@ -34,74 +32,73 @@ const VoiceTooltip = ({ text, voiceText, children, position = 'top', theme, onEr
     } catch (err) {
       console.error("Error al preparar el audio:", err);
       setError(err.message);
-      if (onError) onError(err);  // Llama a la función onError si se proporciona
+      if (onError) onError(err);
     } finally {
       setIsGenerating(false);
     }
   }, [text, voiceText, audioUrl, onError]);
 
-  // Función para reproducir el audio
-  const playAudio = () => {
-    if (!isAudioReady) {
-      // Si el audio no está listo, lo prepara y luego lo reproduce
-      prepareAudio().then(() => {
-        if (audioRef.current) {
-          audioRef.current.play()
-            .then(() => console.log("Audio reproducido exitosamente"))
-            .catch(error => console.error("Error al reproducir audio:", error));
-        }
-      });
-    } else if (audioRef.current) {
-      // Si el audio ya está listo, lo reproduce directamente
+  const playAudio = useCallback(() => {
+    if (audioRef.current) {
       audioRef.current.play()
         .then(() => console.log("Audio reproducido exitosamente"))
-        .catch(error => console.error("Error al reproducir audio:", error));
+        .catch(error => {
+          console.error("Error al reproducir audio:", error);
+          setError("Error al reproducir el audio. Por favor, intente de nuevo.");
+          // Reiniciar el estado del audio para forzar una nueva generación
+          setAudioUrl(null);
+          setIsAudioReady(false);
+        });
     }
-  };
+  }, []);
 
-  // Funciones para mostrar y ocultar el tooltip
+  useEffect(() => {
+    if (visible && !audioUrl && !isGenerating) {
+      prepareAudio();
+    }
+  }, [visible, audioUrl, isGenerating, prepareAudio]);
+
   const showTooltip = () => setVisible(true);
   const hideTooltip = () => {
     setVisible(false);
     if (audioRef.current) {
       audioRef.current.pause();
-      audioRef.current.currentTime = 0;  // Reinicia el audio cuando se oculta el tooltip
+      audioRef.current.currentTime = 0;
     }
   };
 
-  // Renderizado del componente
   return (
     <div
-      className={`voice-tooltip ${position}`}  // Aplica clases CSS para posicionar el tooltip
-      style={theme}  // Aplica estilos personalizados si se proporcionan
-      onMouseEnter={showTooltip}  // Muestra el tooltip al pasar el mouse
-      onMouseLeave={hideTooltip}  // Oculta el tooltip al quitar el mouse
+      className={`voice-tooltip ${position}`}
+      style={theme}
+      onMouseEnter={showTooltip}
+      onMouseLeave={hideTooltip}
     >
-      {children}  // Renderiza el contenido hijo (el elemento al que se aplica el tooltip)
-      <span className="tooltip-text" style={{ visibility: visible ? 'visible' : 'hidden' }}>
-        {text}  // Muestra el texto del tooltip
+      {children}
+      <div className="tooltip-text" style={{ visibility: visible ? 'visible' : 'hidden' }}>
+        <p>{text}</p>
         <button 
-          onClick={(e) => { e.stopPropagation(); playAudio(); }}  // Reproduce el audio al hacer clic
-          disabled={isGenerating}  // Deshabilita el botón mientras se genera el audio
-          className={isGenerating ? 'generating' : ''}  // Aplica una clase CSS cuando se está generando
+          onClick={(e) => { e.stopPropagation(); playAudio(); }}
+          disabled={isGenerating || !isAudioReady}
+          className={isGenerating ? 'generating' : ''}
         >
-          {isGenerating ? '🔊 Generando...' : '🔊 Escuchar en español'}  // Cambia el texto del botón según el estado
+          {isGenerating ? '🔊 Generando...' : '🔊 Escuchar en español'}
         </button>
-        {error && <p style={{ color: 'red' }}>{error}</p>}  // Muestra errores si los hay
-      </span>
-      {audioUrl && <audio ref={audioRef} src={audioUrl} />}  // Elemento de audio oculto
+        {error && <p className="error-message">{error}</p>}
+      </div>
+      {audioUrl && <audio ref={audioRef} src={audioUrl} />}
     </div>
   );
 };
 
-// Definición de los tipos de props para el componente
 VoiceTooltip.propTypes = {
-  text: PropTypes.string.isRequired,  // Texto del tooltip (obligatorio)
-  voiceText: PropTypes.string,  // Texto alternativo para la voz (opcional)
-  position: PropTypes.oneOf(['top', 'bottom', 'left', 'right']),  // Posición del tooltip
-  theme: PropTypes.object,  // Estilos personalizados
-  children: PropTypes.node.isRequired,  // Elemento hijo (obligatorio)
-  onError: PropTypes.func  // Función para manejar errores (opcional)
+  text: PropTypes.string.isRequired,
+  voiceText: PropTypes.string,
+  position: PropTypes.oneOf(['top', 'bottom', 'left', 'right']),
+  theme: PropTypes.object,
+  children: PropTypes.node.isRequired,
+  onError: PropTypes.func
 };
 
-export { VoiceTooltip };
+// Cambiamos la exportación a default
+export default VoiceTooltip;

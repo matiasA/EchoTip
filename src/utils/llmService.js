@@ -1,58 +1,103 @@
-// Importamos la biblioteca OpenAI
 import OpenAI from "openai";
 
-// Creamos una instancia de OpenAI con la clave API
-// La opción dangerouslyAllowBrowser permite el uso en el navegador, pero debe usarse con precaución
 const openai = new OpenAI({
   apiKey: process.env.REACT_APP_OPENAI_API_KEY,
-  dangerouslyAllowBrowser: true // Permite el uso en el navegador
+  dangerouslyAllowBrowser: true
 });
+
+// Función para generar una clave única para cada texto
+function generateCacheKey(text) {
+  return `audio_${btoa(text)}`;
+}
+
+// Función para obtener el audio del caché
+function getCachedAudio(text) {
+  const cacheKey = generateCacheKey(text);
+  const cachedData = localStorage.getItem(cacheKey);
+  if (cachedData) {
+    try {
+      const { audioData, timestamp } = JSON.parse(cachedData);
+      // Verificar si el audio tiene menos de 24 horas
+      if (Date.now() - timestamp < 24 * 60 * 60 * 1000) {
+        return audioData;
+      } else {
+        // Si el audio es viejo, lo eliminamos
+        localStorage.removeItem(cacheKey);
+      }
+    } catch (error) {
+      console.error("Error al parsear datos del caché:", error);
+      localStorage.removeItem(cacheKey);
+    }
+  }
+  return null;
+}
+
+// Función para guardar el audio en el caché
+function cacheAudio(text, audioData) {
+  const cacheKey = generateCacheKey(text);
+  const cacheData = JSON.stringify({
+    audioData,
+    timestamp: Date.now()
+  });
+  try {
+    localStorage.setItem(cacheKey, cacheData);
+  } catch (error) {
+    console.error("Error al guardar en localStorage:", error);
+    // Si hay un error (probablemente por espacio), limpiamos el localStorage
+    clearOldCache();
+  }
+}
+
+// Función para limpiar caché antiguo
+function clearOldCache() {
+  Object.keys(localStorage).forEach(key => {
+    if (key.startsWith('audio_')) {
+      try {
+        const { timestamp } = JSON.parse(localStorage.getItem(key));
+        if (Date.now() - timestamp > 24 * 60 * 60 * 1000) {
+          localStorage.removeItem(key);
+        }
+      } catch (error) {
+        localStorage.removeItem(key);
+      }
+    }
+  });
+}
 
 // Función asincrónica para generar audio a partir de texto
 export async function generateVoiceAudio(text) {
+  // Primero, intentamos obtener el audio del caché
+  const cachedAudioData = getCachedAudio(text);
+  if (cachedAudioData) {
+    console.log("Audio obtenido del caché");
+    return cachedAudioData;
+  }
+
   try {
     console.log("Generando audio para:", text);
-    // Llamamos a la API de OpenAI para crear un audio de voz
     const mp3 = await openai.audio.speech.create({
-      model: "tts-1", // Modelo de texto a voz
-      voice: "alloy", // Voz seleccionada
-      input: text, // Texto a convertir en audio
+      model: "tts-1",
+      voice: "alloy",
+      input: text,
     });
     console.log("Audio generado exitosamente");
 
-    // Convertimos la respuesta en un ArrayBuffer
     const buffer = await mp3.arrayBuffer();
-    // Creamos un Blob a partir del ArrayBuffer
-    const blob = new Blob([buffer], { type: "audio/mpeg" });
-    // Creamos una URL para el Blob
-    const url = URL.createObjectURL(blob);
-    console.log("URL del audio generada:", url);
-    return url;
+    const base64Audio = btoa(String.fromCharCode(...new Uint8Array(buffer)));
+    const audioData = `data:audio/mpeg;base64,${base64Audio}`;
+
+    // Guardamos el audio en el caché
+    cacheAudio(text, audioData);
+
+    return audioData;
   } catch (error) {
     console.error("Error al generar el audio:", error);
     return null;
   }
 }
 
-// Función asincrónica para traducir texto al español
+// Función asincrónica para "traducir" texto al español (en realidad, solo lo devolverá sin cambios)
 export async function translateToSpanish(text) {
-  try {
-    console.log("Traduciendo texto:", text);
-    // Llamamos a la API de OpenAI para realizar la traducción
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini", // Modelo de lenguaje a utilizar
-      messages: [
-        { role: "system", content: "Eres un traductor experto. Traduce el siguiente texto al español." },
-        { role: "user", content: text }
-      ],
-      max_tokens: 100 // Límite de tokens para la respuesta
-    });
-    // Extraemos el texto traducido de la respuesta
-    const translatedText = completion.choices[0].message.content.trim();
-    console.log("Texto traducido:", translatedText);
-    return translatedText;
-  } catch (error) {
-    console.error("Error al traducir el texto:", error);
-    return text; // Devolvemos el texto original si hay un error
-  }
+  console.log("Texto original (ya en español):", text);
+  return text; // Simplemente devolvemos el texto original sin traducir
 }
